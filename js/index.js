@@ -13,6 +13,21 @@ Vue.component('create-task', {
 
 })
 
+Vue.component('task-card', {
+    props: {
+        task: Object,
+        column: String
+    },
+    methods: {
+        editTask(task) {
+            this.$emit('edit', this.task)
+        },
+        moveTask(task) {
+            this.$emit('move-forward', this.task)
+        },
+        moveBack(){},
+    }
+})
 
 new Vue({
     el: '#app',
