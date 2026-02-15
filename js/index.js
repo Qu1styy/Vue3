@@ -143,11 +143,8 @@ new Vue({
             const title = prompt('Новый заголовок', task.title)
             if (title) task.title = title
 
-            const deadline = prompt('Новый дедлайн (YYYY-MM-DDTHH:MM)', task.deadlineRaw)
-            if (deadline) {
-                task.deadlineRaw = deadline
-                task.deadline = new Date(deadline).toLocaleString('ru-RU')
-            }
+            const description = prompt('Новое описание', task.description)
+            if (description) task.description = description
 
             task.updatedAt = new Date().toLocaleString('ru-RU')
             this.save()
