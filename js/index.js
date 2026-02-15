@@ -24,6 +24,13 @@ Vue.component('task-card', {
                 <small>Обновлено: {{ task.updatedAt }}</small><br>
                 <small>Дедлайн: {{ task.deadline }}</small>
             </div>
+            <div class="mt-2">
+                <button v-if="column !== 'done'"
+                        @click="$emit('move-forward', task)"
+                        class="btn btn-sm btn-success">
+                    дальше
+                </button>
+            </div>
         </div>
     `
 })
