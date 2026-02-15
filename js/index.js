@@ -15,9 +15,22 @@ Vue.component('kanban-column', {
 
 Vue.component('task-card', {
     props: ['task', 'column'],
+    methods: {
+        methods: {
+            moveBack() {
+                const reason = prompt('Укажите причину возврата')
+                if (!reason) return
+                this.$emit('move-back', { task: this.task, reason })
+            }
+        }
+    },
     template: `
         <div class="card mb-3">
-            <div class="card-body">
+            <div class="card-body"
+            :class="{
+                'card-overdue': column === 'done' && task.isCompletedInTime === false,
+                'card-success': column === 'done' && task.isCompletedInTime === true
+            }">
                 <h5>{{ task.title }}</h5>
                 <p>{{ task.description }}</p>
                 <small>Создано: {{ task.createdAt }}</small><br>
@@ -31,6 +44,11 @@ Vue.component('task-card', {
                     дальше
                 </button>
             </div>
+            <button v-if="column === 'testing'"
+                    @click="moveBack"
+                    class="btn btn-sm btn-secondary">
+                назад
+            </button>
         </div>
     `
 })
@@ -151,8 +169,8 @@ new Vue({
         finishTask(task) {
             const deadline = new Date(task.deadlineRaw)
             const now = new Date()
+
             task.isCompletedInTime = now <= deadline
-            task.returnReason = null
             this.move(task, 'testing', 'done')
         },
 
