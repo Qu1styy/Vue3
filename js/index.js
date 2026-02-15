@@ -1,3 +1,24 @@
+Vue.component('column-column', {
+    props: ['title', 'tasks', 'column'],
+    template: `
+        <div class="column">
+            <h4>{{ title }}</h4>
+
+            <task-card
+                v-for="task in tasks"
+                :key="task.id"
+                :task="task"
+                :column="column"
+                @edit="$emit('edit', $event)"
+                @delete="$emit('delete', $event)"
+                @move-forward="$emit('move-forward', $event)"
+                @move-back="$emit('move-back', $event)"
+            ></task-card>
+
+        </div>
+    `
+})
+
 Vue.component('kanban-column', {
     props: ['title', 'tasks', 'column'],
     template: `
@@ -123,8 +144,14 @@ Vue.component('create-task', {
 
 new Vue({
     el: '#app',
-
     data: {
+        columnConfig: [
+            { key: 'todo', title: 'Запланированные задачи' },
+            { key: 'inProgress', title: 'Задачи в работе' },
+            { key: 'testing', title: 'Тестирование' },
+            { key: 'done', title: 'Выполненные задачи' }
+        ],
+
         columns: {
             todo: [],
             inProgress: [],

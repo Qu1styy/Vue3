@@ -8,43 +8,20 @@
 </head>
 <body>
 <div id="app" class="board">
-    <div class="create-task">
-        <create-task @create="addTask"></create-task>
-    </div>
-    <div class="board">
+    <create-task @create="addTask"></create-task>
 
-        <kanban-column
-                title="Запланированные задачи"
-                column="todo"
-                :tasks="columns.todo"
+    <div class="board-column">
+        <column-column
+                v-for="col in columnConfig"
+                :key="col.key"
+                :title="col.title"
+                :column="col.key"
+                :tasks="columns[col.key]"
                 @edit="editTask"
                 @delete="deleteTask"
-                @move-forward="moveForward">
-        </kanban-column>
-
-        <kanban-column
-                title="Задачи в работе"
-                column="inProgress"
-                :tasks="columns.inProgress"
-                @edit="editTask"
-                @move-forward="moveForward">
-        </kanban-column>
-
-        <kanban-column
-                title="Тестирование"
-                column="testing"
-                :tasks="columns.testing"
-                @edit="editTask"
                 @move-forward="moveForward"
-                @move-back="moveBack">
-        </kanban-column>
-
-        <kanban-column
-                title="Выполненные задачи"
-                column="done"
-                :tasks="columns.done">
-        </kanban-column>
-
+                @move-back="moveBack"
+        ></column-column>
     </div>
 </div>
 <script defer src="js/vue.js"></script>
