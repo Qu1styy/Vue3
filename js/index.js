@@ -1,3 +1,33 @@
+Vue.component('kanban-column', {
+    props: ['title', 'tasks', 'column'],
+    template: `
+        <div class="column">
+            <h4>{{ title }}</h4>
+            <task-card
+                v-for="task in tasks"
+                :key="task.id"
+                :task="task"
+                :column="column">
+            </task-card>
+        </div>
+    `
+})
+
+Vue.component('task-card', {
+    props: ['task', 'column'],
+    template: `
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>{{ task.title }}</h5>
+                <p>{{ task.description }}</p>
+                <small>Создано: {{ task.createdAt }}</small><br>
+                <small>Обновлено: {{ task.updatedAt }}</small><br>
+                <small>Дедлайн: {{ task.deadline }}</small>
+            </div>
+        </div>
+    `
+})
+
 Vue.component('create-task', {
     data() {
         return {
