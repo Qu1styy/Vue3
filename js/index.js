@@ -6,9 +6,10 @@ Vue.component('create-task', {
             deadline: ''
         }
     },
-    methods:{
-        create(){
+    methods: {
+        create() {
             if (!this.title || !this.deadline) return
+
             const now = new Date().toLocaleString('ru-RU')
 
             const task = {
@@ -17,21 +18,29 @@ Vue.component('create-task', {
                 description: this.description,
                 createdAt: now,
                 updatedAt: now,
-                deadline: new Date(this.deadline).toLocaleString('ru-RU'),
                 deadlineRaw: this.deadline,
+                deadline: new Date(this.deadline).toLocaleString('ru-RU'),
                 status: 'todo',
                 returnReason: null,
-                isCompletedInTime: false
+                isCompletedInTime: null
             }
 
-            this.$emit('create', task);
+            this.$emit('create', task)
 
             this.title = ''
             this.description = ''
             this.deadline = ''
-
         }
     },
+    template: `
+        <div class="p-3">
+            <h4>Создать задачу</h4>
+            <input v-model="title" class="form-control mb-2" placeholder="Заголовок">
+            <textarea v-model="description" class="form-control mb-2" placeholder="Описание"></textarea>
+            <input type="datetime-local" v-model="deadline" class="form-control mb-2">
+            <button @click="create" class="btn btn-primary">Создать</button>
+        </div>
+    `
 })
 
 Vue.component('task-card', {
