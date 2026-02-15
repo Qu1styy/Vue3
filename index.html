@@ -13,25 +13,31 @@
         <kanban-column
                 title="Запланированные задачи"
                 column="todo"
-                :tasks="columns.todo">
+                :tasks="columns.todo"
+                @move-forward="$emit('move-forward', $event)">
         </kanban-column>
 
         <kanban-column
                 title="Задачи в работе"
                 column="inProgress"
-                :tasks="columns.inProgress">
+                :tasks="columns.inProgress"
+                @move-forward="$emit('move-forward', $event)"
+                @move-forward="moveForward">
         </kanban-column>
 
         <kanban-column
                 title="Тестирование"
                 column="testing"
-                :tasks="columns.testing">
+                :tasks="columns.testing"
+                @move-forward="$emit('move-forward', $event)"
+                @move-forward="moveForward">
         </kanban-column>
 
         <kanban-column
                 title="Выполненные задачи"
                 column="done"
-                :tasks="columns.done">
+                :tasks="columns.done"
+                @move-forward="$emit('move-forward', $event)">
         </kanban-column>
 
     </div>

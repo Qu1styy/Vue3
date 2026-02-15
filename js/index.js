@@ -157,28 +157,27 @@ new Vue({
         },
 
         moveForward(task) {
-            if (task.status === 'todo'){
+            if (task.status === 'todo')
                 this.move(task, 'todo', 'inProgress')
-            }
-            else if (task.status === 'inProgress'){
+            else if (task.status === 'inProgress')
                 this.move(task, 'inProgress', 'testing')
-            }
-            else if (task.status === 'testing'){
+            else if (task.status === 'testing')
                 this.finishTask(task)
-            }
+        },
+
+        move(task, from, to) {
+            this.columns[from] =
+                this.columns[from].filter(t => t.id !== task.id)
+
+            task.status = to
+            task.updatedAt = new Date().toLocaleString('ru-RU')
+
+            this.columns[to].push(task)
         },
 
         moveBack({ task, reason }) {
             task.returnReason = reason
             this.move(task, 'testing', 'inProgress')
-        },
-
-        move(task, from, to) {
-            this.columns[from] = this.columns[from].filter(t => t.id !== task.id)
-            task.status = to
-            task.updatedAt = new Date().toLocaleString('ru-RU')
-            this.columns[to].push(task)
-            this.save()
         },
 
         save() {
@@ -188,7 +187,8 @@ new Vue({
         load() {
             const data = localStorage.getItem('kanban')
             if (data) this.columns = JSON.parse(data)
-        }
+        },
+
     },
 
     mounted() {
