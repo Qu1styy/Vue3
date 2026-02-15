@@ -7,8 +7,12 @@ Vue.component('kanban-column', {
                 v-for="task in tasks"
                 :key="task.id"
                 :task="task"
-                :column="column">
-            </task-card>
+                :column="column"
+                @edit="$emit('edit', $event)"
+                @delete="$emit('delete', $event)"
+                @move-forward="$emit('move-forward', $event)"
+                @move-back="$emit('move-back', $event)"
+            ></task-card>
         </div>
     `
 })
@@ -117,28 +121,9 @@ Vue.component('create-task', {
     `
 })
 
-Vue.component('task-card', {
-    props: {
-        task: Object,
-        column: String
-    },
-    methods: {
-        editTask(task) {
-            this.$emit('edit', this.task)
-        },
-        moveTask(task) {
-            this.$emit('move-forward', this.task)
-        },
-        moveBack(){
-            const reason = prompt('Please indicate the reason for return');
-            if(!reason) return
-            this.$emit('move-back', { task: this.task, reason });
-        }
-    }
-})
-
 new Vue({
     el: '#app',
+
     data: {
         columns: {
             todo: [],
@@ -147,6 +132,7 @@ new Vue({
             done: []
         }
     },
+
     methods: {
         addTask(task) {
             this.columns.todo.push(task)
@@ -154,25 +140,13 @@ new Vue({
         },
 
         editTask(task) {
+            const title = prompt('Новый заголовок', task.title)
+            if (title) task.title = title
 
-            const isOverdue =
-                task.status !== 'done' &&
-                new Date() > new Date(task.deadlineRaw)
-
-            if (isOverdue) {
-                alert('The date of overdue notes cannot be changed')
-                return
-            }
-
-            const title = prompt('New title', task.title)
-            if (title) {
-                task.title = title
-            }
-
-            const newDeadline = prompt('New deadline', task.deadlineRaw)
-            if (newDeadline) {
-                task.deadlineRaw = newDeadline
-                task.deadline = new Date(newDeadline).toLocaleString('ru-RU')
+            const deadline = prompt('Новый дедлайн (YYYY-MM-DDTHH:MM)', task.deadlineRaw)
+            if (deadline) {
+                task.deadlineRaw = deadline
+                task.deadline = new Date(deadline).toLocaleString('ru-RU')
             }
 
             task.updatedAt = new Date().toLocaleString('ru-RU')
@@ -180,17 +154,9 @@ new Vue({
         },
 
         deleteTask(task) {
-            this.columns[task.status] =
-                this.columns[task.status].filter(t => t.id !== task.id)
+            this.columns.todo =
+                this.columns.todo.filter(t => t.id !== task.id)
             this.save()
-        },
-
-        finishTask(task) {
-            const deadline = new Date(task.deadlineRaw)
-            const now = new Date()
-
-            task.isCompletedInTime = now <= deadline
-            this.move(task, 'testing', 'done')
         },
 
         moveForward(task) {
@@ -202,6 +168,19 @@ new Vue({
                 this.finishTask(task)
         },
 
+        moveBack({ task, reason }) {
+            task.returnReason = reason
+            this.move(task, 'testing', 'inProgress')
+        },
+
+        finishTask(task) {
+            const deadline = new Date(task.deadlineRaw)
+            const now = new Date()
+
+            task.isCompletedInTime = now <= deadline
+            this.move(task, 'testing', 'done')
+        },
+
         move(task, from, to) {
             this.columns[from] =
                 this.columns[from].filter(t => t.id !== task.id)
@@ -210,24 +189,21 @@ new Vue({
             task.updatedAt = new Date().toLocaleString('ru-RU')
 
             this.columns[to].push(task)
-        },
-
-        moveBack({task, reason}) {
-            task.returnReason = reason
-            this.move(task, 'testing', 'inProgress')
+            this.save()
         },
 
         save() {
             localStorage.setItem('kanban', JSON.stringify(this.columns))
         },
+
         load() {
             const data = localStorage.getItem('kanban')
             if (data)
                 this.columns = JSON.parse(data)
-        },
-
-        mounted() {
-            this.load()
         }
+    },
+
+    mounted() {
+        this.load()
     }
 })
