@@ -1,0 +1,19 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+.create-task{
+    width: 36vw;
+    margin-bottom: 2vw;
+    padding: 24px;
+}
+
+.board{
+    padding: 24px;
+    width: 36vw;
+}
+
+.column{
+    margin-bottom: 24px;
+}
