@@ -16,39 +16,58 @@ Vue.component('kanban-column', {
 Vue.component('task-card', {
     props: ['task', 'column'],
     methods: {
-        methods: {
-            moveBack() {
-                const reason = prompt('Укажите причину возврата')
-                if (!reason) return
-                this.$emit('move-back', { task: this.task, reason })
-            }
+        moveBack() {
+            const reason = prompt('Укажите причину возврата')
+            if (!reason) return
+            this.$emit('move-back', { task: this.task, reason })
         }
     },
     template: `
-        <div class="card mb-3">
-            <div class="card-body"
+        <div class="card mb-3"
             :class="{
                 'card-overdue': column === 'done' && task.isCompletedInTime === false,
                 'card-success': column === 'done' && task.isCompletedInTime === true
             }">
+            <div class="card-body">
                 <h5>{{ task.title }}</h5>
                 <p>{{ task.description }}</p>
                 <small>Создано: {{ task.createdAt }}</small><br>
                 <small>Обновлено: {{ task.updatedAt }}</small><br>
-                <small>Дедлайн: {{ task.deadline }}</small>
-            </div>
-            <div class="mt-2">
-                <button v-if="column !== 'done'"
+                <small>Дедлайн: {{ task.deadline }}</small><br>
+                <small v-if="task.returnReason">Причина возврата: {{ task.returnReason }}</small>
+
+                <div class="mt-2">
+
+                    <button
+                        v-if="column !== 'done'"
+                        @click="$emit('edit', task)"
+                        class="btn btn-sm btn-warning me-1">
+                        редактировать
+                    </button>
+
+                    <button
+                        v-if="column === 'todo'"
+                        @click="$emit('delete', task)"
+                        class="btn btn-sm btn-danger me-1">
+                        удалить
+                    </button>
+
+                    <button
+                        v-if="column !== 'done'"
                         @click="$emit('move-forward', task)"
-                        class="btn btn-sm btn-success">
-                    дальше
-                </button>
+                        class="btn btn-sm btn-success me-1">
+                        дальше
+                    </button>
+
+                    <button
+                        v-if="column === 'testing'"
+                        @click="moveBack"
+                        class="btn btn-sm btn-secondary">
+                        назад
+                    </button>
+
+                </div>
             </div>
-            <button v-if="column === 'testing'"
-                    @click="moveBack"
-                    class="btn btn-sm btn-secondary">
-                назад
-            </button>
         </div>
     `
 })
@@ -129,12 +148,12 @@ new Vue({
         }
     },
     methods: {
-        addTask(task){
+        addTask(task) {
             this.columns.todo.push(task)
             this.save()
         },
 
-        editTask(task){
+        editTask(task) {
 
             const isOverdue =
                 task.status !== 'done' &&
@@ -193,7 +212,7 @@ new Vue({
             this.columns[to].push(task)
         },
 
-        moveBack({ task, reason }) {
+        moveBack({task, reason}) {
             task.returnReason = reason
             this.move(task, 'testing', 'inProgress')
         },
@@ -201,16 +220,14 @@ new Vue({
         save() {
             localStorage.setItem('kanban', JSON.stringify(this.columns))
         },
-
         load() {
             const data = localStorage.getItem('kanban')
-            if (data) this.columns = JSON.parse(data)
+            if (data)
+                this.columns = JSON.parse(data)
         },
 
-    },
-
-    mounted() {
-        this.load()
+        mounted() {
+            this.load()
+        }
     }
-
 })
