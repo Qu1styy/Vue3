@@ -7,22 +7,8 @@
     <link rel="stylesheet" href="./css/index.css">
 </head>
 <body>
-<div id="app" class="board">
-    <create-task @create="addTask"></create-task>
-
-    <div class="board-column">
-        <column-column
-                v-for="col in columnConfig"
-                :key="col.key"
-                :title="col.title"
-                :column="col.key"
-                :tasks="columns[col.key]"
-                @edit="editTask"
-                @delete="deleteTask"
-                @move-forward="moveForward"
-                @move-back="moveBack"
-        ></column-column>
-    </div>
+<div id="app">
+    <app-root></app-root>
 </div>
 <script defer src="js/vue.js"></script>
 <script defer src="js/index.js"></script>

@@ -1,3 +1,5 @@
+const Bus = new Vue()
+
 Vue.component('column-column', {
     props: ['title', 'tasks', 'column'],
     template: `
@@ -9,30 +11,6 @@ Vue.component('column-column', {
                 :key="task.id"
                 :task="task"
                 :column="column"
-                @edit="$emit('edit', $event)"
-                @delete="$emit('delete', $event)"
-                @move-forward="$emit('move-forward', $event)"
-                @move-back="$emit('move-back', $event)"
-            ></task-card>
-
-        </div>
-    `
-})
-
-Vue.component('kanban-column', {
-    props: ['title', 'tasks', 'column'],
-    template: `
-        <div class="column">
-            <h4>{{ title }}</h4>
-            <task-card
-                v-for="task in tasks"
-                :key="task.id"
-                :task="task"
-                :column="column"
-                @edit="$emit('edit', $event)"
-                @delete="$emit('delete', $event)"
-                @move-forward="$emit('move-forward', $event)"
-                @move-back="$emit('move-back', $event)"
             ></task-card>
         </div>
     `
@@ -40,54 +18,62 @@ Vue.component('kanban-column', {
 
 Vue.component('task-card', {
     props: ['task', 'column'],
+
+    computed: {
+        isOverdue() {
+            if (!this.task.deadlineRaw) return false
+            const now = new Date()
+            const deadline = new Date(this.task.deadlineRaw)
+            return now > deadline && this.task.status === 'done'
+        }
+    },
+
     methods: {
+        edit() {
+            Bus.$emit('task:edit', this.task)
+        },
+
+        deleteTask() {
+            Bus.$emit('task:delete', this.task)
+        },
+
+        moveForward() {
+            Bus.$emit('task:forward', this.task)
+        },
+
         moveBack() {
             const reason = prompt('Укажите причину возврата')
             if (!reason) return
-            this.$emit('move-back', { task: this.task, reason })
+            Bus.$emit('task:back', { task: this.task, reason })
         }
     },
+
     template: `
-        <div class="card mb-3"
-            :class="{
-                'card-overdue': column === 'done' && task.isCompletedInTime === false,
-                'card-success': column === 'done' && task.isCompletedInTime === true
-            }">
+        <div class="card mb-3">
             <div class="card-body">
                 <h5>{{ task.title }}</h5>
                 <p>{{ task.description }}</p>
                 <small>Создано: {{ task.createdAt }}</small><br>
                 <small>Обновлено: {{ task.updatedAt }}</small><br>
                 <small>Дедлайн: {{ task.deadline }}</small><br>
+                <small v-if="isOverdue">Просрочено</small><br>
                 <small v-if="task.returnReason">Причина возврата: {{ task.returnReason }}</small>
 
                 <div class="mt-2">
 
-                    <button
-                        v-if="column !== 'done'"
-                        @click="$emit('edit', task)"
-                        class="btn btn-sm btn-warning me-1">
+                    <button v-if="column !== 'done'" @click="edit" class="btn btn-sm btn-warning me-1">
                         редактировать
                     </button>
 
-                    <button
-                        v-if="column === 'todo'"
-                        @click="$emit('delete', task)"
-                        class="btn btn-sm btn-danger me-1">
+                    <button v-if="column === 'todo'" @click="deleteTask" class="btn btn-sm btn-danger me-1">
                         удалить
                     </button>
 
-                    <button
-                        v-if="column !== 'done'"
-                        @click="$emit('move-forward', task)"
-                        class="btn btn-sm btn-success me-1">
+                    <button v-if="column !== 'done'" @click="moveForward" class="btn btn-sm btn-success me-1">
                         дальше
                     </button>
 
-                    <button
-                        v-if="column === 'testing'"
-                        @click="moveBack"
-                        class="btn btn-sm btn-secondary">
+                    <button v-if="column === 'testing'" @click="moveBack" class="btn btn-sm btn-secondary">
                         назад
                     </button>
 
@@ -105,6 +91,7 @@ Vue.component('create-task', {
             deadline: ''
         }
     },
+
     methods: {
         create() {
             if (!this.title || !this.deadline) return
@@ -124,13 +111,14 @@ Vue.component('create-task', {
                 isCompletedInTime: null
             }
 
-            this.$emit('create', task)
+            Bus.$emit('task:create', task)
 
             this.title = ''
             this.description = ''
             this.deadline = ''
         }
     },
+
     template: `
         <div class="p-3">
             <h4>Создать задачу</h4>
@@ -142,22 +130,51 @@ Vue.component('create-task', {
     `
 })
 
-new Vue({
-    el: '#app',
-    data: {
-        columnConfig: [
-            { key: 'todo', title: 'Запланированные задачи' },
-            { key: 'inProgress', title: 'Задачи в работе' },
-            { key: 'testing', title: 'Тестирование' },
-            { key: 'done', title: 'Выполненные задачи' }
-        ],
+Vue.component('app-root', {
+    template: `
+        <div class="board">
+            <create-task></create-task>
 
-        columns: {
-            todo: [],
-            inProgress: [],
-            testing: [],
-            done: []
+            <div class="board-column">
+                <column-column
+                        v-for="col in columnConfig"
+                        :key="col.key"
+                        :title="col.title"
+                        :column="col.key"
+                        :tasks="columns[col.key]"
+                ></column-column>
+            </div>
+        </div>
+    `,
+
+    data() {
+        return {
+            columnConfig: [
+                { key: 'todo', title: 'Запланированные задачи' },
+                { key: 'inProgress', title: 'Задачи в работе' },
+                { key: 'testing', title: 'Тестирование' },
+                { key: 'done', title: 'Выполненные задачи' }
+            ],
+
+            columns: {
+                todo: [],
+                inProgress: [],
+                testing: [],
+                done: []
+            }
         }
+    },
+
+    created() {
+        Bus.$on('task:create', this.addTask)
+        Bus.$on('task:edit', this.editTask)
+        Bus.$on('task:delete', this.deleteTask)
+        Bus.$on('task:forward', this.moveForward)
+        Bus.$on('task:back', this.moveBack)
+    },
+
+    mounted() {
+        this.load()
     },
 
     methods: {
@@ -189,7 +206,7 @@ new Vue({
             else if (task.status === 'inProgress')
                 this.move(task, 'inProgress', 'testing')
             else if (task.status === 'testing')
-                this.finishTask(task)
+                this.move(task, 'testing', 'done')
         },
 
         moveBack({ task, reason }) {
@@ -197,21 +214,11 @@ new Vue({
             this.move(task, 'testing', 'inProgress')
         },
 
-        finishTask(task) {
-            const deadline = new Date(task.deadlineRaw)
-            const now = new Date()
-
-            task.isCompletedInTime = now <= deadline
-            this.move(task, 'testing', 'done')
-        },
-
         move(task, from, to) {
             this.columns[from] =
                 this.columns[from].filter(t => t.id !== task.id)
 
             task.status = to
-            task.updatedAt = new Date().toLocaleString('ru-RU')
-
             this.columns[to].push(task)
             this.save()
         },
@@ -225,9 +232,9 @@ new Vue({
             if (data)
                 this.columns = JSON.parse(data)
         }
-    },
-
-    mounted() {
-        this.load()
     }
+})
+
+new Vue({
+    el: '#app'
 })
