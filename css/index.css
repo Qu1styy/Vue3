@@ -1,32 +1,39 @@
-*{
+* {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
-.create-task{
-    width: 36vw;
-    margin-bottom: 2vw;
-    padding: 24px;
+body {
+    min-height: 100vh;
+    background: linear-gradient(180deg, #f8f9fa 0%, #edf2ff 100%);
 }
 
-.board{
-    padding: 24px;
-    width: 36vw
+.board {
+    min-height: 100vh;
 }
 
-.column{
-    margin-bottom: 24px;
-    width: 20vw;
+.column {
+    border-radius: 0.75rem;
 }
 
-.board-column{
-    padding: 24px;
-    width: 90vw;
-    display: flex;
-    flex-direction: row;
-    gap: 2vw;
+.column > .card-body {
+    max-height: 68vh;
+    overflow-y: auto;
 }
 
-button{
-    margin-top: 8px;
+.task-card {
+    border-left: 4px solid #0d6efd;
+    border-radius: 0.65rem;
+}
+
+.in_dead_line_p {
+    margin-bottom: 0.75rem;
+}
+
+@media (max-width: 991.98px) {
+    .column > .card-body {
+        max-height: none;
+        overflow-y: visible;
+    }
 }
